@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE Caption Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+               script-src 'self' 'unsafe-eval' 'unsafe-inline';
+               connect-src 'self' https://api.gumroad.com https://*.vercel.app;
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data: https:;
+               font-src 'self';">
+</head>
+
+<body>
+<main>
+    <div class="container">
+        <!-- ACTIVATION VIEW: Shown on startup if not licensed. -->
+        <div id="activation-view" class="view" role="dialog" aria-modal="true" aria-live="polite">
+            <div class="activation-card">
+                <div class="icon">🔑</div>
+                <h2>Activation Required</h2>
+                <p class="utility-description">
+                    Please enter your Gumroad license key to activate the AE Caption Tool.
+                </p>
+                <div class="license-form-group">
+                    <label for="licenseKeyInput">License Key</label>
+                    <input type="text" id="licenseKeyInput" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX">
+                </div>
+                <div class="utility-buttons">
+                    <button type="button" id="verifyLicenseBtn" class="btn btn-primary btn-large">Activate</button>
+                </div>
+                <div id="licenseStatus" class="status-message" style="margin-top: 10px; text-align: center;"></div>
+                <a href="#" id="buyLink" class="buy-link"
+                   onclick="cep.util.openURLInDefaultBrowser('https://mukeshfx.gumroad.com/l/Autocaptionspro')"
+                   style="cursor: pointer;">Don't have a
+                    license? Get one here.</a>
+            </div>
+        </div>
+
+        <!-- MAIN APP CONTAINER: This entire block is hidden until activation is successful. -->
+        <div id="main-app-container" class="hidden">
+            <!-- SETUP VIEW -->
+            <!-- Setup View -->
+            <div id="setup-view" class="view">
+                <div class="setup-card" role="region" aria-labelledby="setupTitle">
+                    <div class="setup-head">
+                        <span class="eyebrow">Setup</span>
+                        <h1 id="setupTitle" class="pro-title">AE Caption Generator</h1>
+                        <p class="setup-subtitle" id="setupHint">Choose your <strong>Toolkit</strong> folder to
+                            continue.</p>
+                    </div>
+
+                    <div class="setup-illustration">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor"
+                             viewBox="0 0 16 16">
+                            <path
+                                    d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5V5a1.5 1.5 0 0 0-1.5-1.5H8.414L6.707 1.793A1 1 0 0 0 6 1.5H1.5zM1 3.5a.5.5 0 0 1 .5-.5H6a.5.5 0 0 1 .354.146L8.061 4.5H14.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9z" />
+                        </svg>
+                    </div>
+
+
+
+                    <button id="selectFolderBtn" class="btn btn-primary btn-lg w-100" aria-describedby="setupHint">
+                        <i class="bi bi-folder-plus me-2"></i>Select “Toolkit” Folder
+                    </button>
+
+                    <p id="setupStatusText" class="status-text" role="status" aria-live="polite"></p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MAIN VIEW -->
+        <div id="main-view" class="view hidden">
+            <header class="header top-section">
+                <div class="header-logo">
+                    <img src="assets/logo.png" alt="AE Caption Generator" class="logo-img ">
+                </div>
+                <div class="header-buttons">
+                    <button type="button" id="settingsBtn" class="btn btn-icon"
+                            title="Settings and Utilities">☰</button>
+                </div>
+            </header>
+            <div class="content-wrapper">
+                <div id="progressContainer" class="progress-container hidden" role="status" aria-live="polite">
+                    <div class="progress-header"><span>Progress</span><span id="progressText"
+                                                                            class="progress-percentage">0%</span></div>
+                    <div class="progress-bar-container">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+                    <div id="statusText" class="status-message">Ready</div>
+                </div>
+                <form id="settingsForm" class="settings-form">
+                    <div class="section">
+                        <h3>Caption Settings</h3>
+                        <div class="form-group"><label for="maxChars">Max Characters</label><input type="number"
+                                                                                                   id="maxChars" value="32" min="10" max="100"></div>
+                        <div class="form-group"><label for="maxDuration">Max Duration (s)</label><input
+                                type="number" id="maxDuration" value="3.0" min="1" max="10" step="0.1"></div>
+                        <div class="form-group"><label for="gapFrames">Gap Threshold (fr)</label><input
+                                type="number" id="gapFrames" value="2" min="1" max="10"></div>
+                        <div class="form-group"><label for="lineMode">Line Mode</label><select id="lineMode">
+                            <option value="smart" selected>Smart (Auto-break)</option>
+                            <option value="single">Single Line</option>
+                            <option value="double">Double Line</option>
+                        </select></div>
+                    </div>
+                    <div class="section">
+                        <h3>AI Settings</h3>
+                        <div class="form-group"><label for="langCode">Language</label><select id="langCode">
+                            <option value="auto">Auto-detect</option>
+                            <option value="en" selected>English ⭐ Top</option>
+                            <option value="es">Spanish ⭐ Top</option>
+                            <option value="fr">French ⭐ Top</option>
+                            <option value="de">German ⭐ Top</option>
+                            <option value="hi">Hindi</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="it">Italian</option>
+                            <option value="ru">Russian</option>
+                            <option value="zh">Chinese</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+
+                        </select></div>
+                        <div class="form-group"><label for="modelSize">Model Size</label><select id="modelSize">
+                            <!--<option value="tiny">Tiny (Fastest)</option>-->
+                            <option value="small" selected>Small (Recommended)</option>
+                            <option value="medium" disabled>High (Coming Soon)</option>
+                            <!-- <option value="large" data-pro>Large (Pro)</option> -->
+                        </select></div>
+
+
+                        <div class="form-group"><label for="posDropdown">Position</label><select id="posDropdown">
+                            <option value="0">Bottom</option>
+                            <option value="1">Top</option>
+                            <option value="2">Center</option>
+                        </select></div>
+
+
+
+                        <div class="form-group"><label for="fontSizeDropdown">Font Size</label><select
+                                id="fontSizeDropdown">
+                            <option value="24">Small</option>
+                            <option value="36" selected>Medium</option>
+                            <option value="48">Large</option>
+                            <option value="60">XL</option>
+                        </select></div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Options</h3>
+                        <div class="checkbox-grid">
+                            <div class="checkbox-group"><input type="checkbox" id="doBatch" data-pro><label
+                                    for="doBatch">Batch Mode<span class="pro-lock">Pro</span></label></div>
+                            <div class="checkbox-group"><input type="checkbox" id="doExportSrt" checked><label
+                                    for="doExportSrt">Export SRT</label></div>
+                            <div class="checkbox-group"><input type="checkbox" id="doCleanup" checked><label
+                                    for="doCleanup">Auto Cleanup</label></div>
+                            <div class="checkbox-group"><input type="checkbox" id="singleLayerMode"><label
+                                    for="singleLayerMode">Single Layer</label></div>
+                            <div class="checkbox-group"><input type="checkbox" id="doTranslateToEnglish"><label
+                                    for="doTranslateToEnglish">Translate to English</label></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div>
+                <div class="generate-section"><button type="button" id="generateBtn"
+                                                      class="btn btn-primary btn-large ">Generate Captions</button>
+
+
+                    <div
+                            style="margin-top:4px; text-align:center; font-size:12px; color:#aaa; line-height:1.4; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                        Made with
+                        <span id="heart"
+                              style="display:inline-block; cursor:pointer; transition:transform 600ms cubic-bezier(.25,1.75,.5,1.35); margin:0 3px;">❤️</span>
+                        by
+                        <b>
+                                <span id="mkfx"
+                                      onclick="cep.util.openURLInDefaultBrowser('https://www.instagram.com/mukesh.fx_/')"
+                                      style="font-weight:600; cursor:pointer; display:inline-block; padding:1px 4px; border-radius:6px; -webkit-font-smoothing:antialiased; will-change:transform,filter;">
+                                    Mukeshfx
+                                </span>
+                        </b>
+                    </div>
+
+                    <style>
+                        /* Name bounce + gradient */
+                        #mkfx {
+                            color: #ffffff;
+                            background: none;
+                            transition:
+                                    transform 600ms cubic-bezier(.25, 1.75, .5, 1.35),
+                                    filter 600ms cubic-bezier(.25, 1.75, .5, 1.35);
+                        }
+
+                        #mkfx:hover {
+                            transform: scale(1.12);
+                            background: linear-gradient(120deg, #f5f5f5, #cfcfcf, #e0e0e0);
+                            background-size: 300% 300%;
+                            -webkit-background-clip: text;
+                            background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            animation: gradientShift 4s ease infinite;
+                            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+                        }
+
+                        #mkfx:active {
+                            transform: scale(0.9);
+                            transition-duration: 150ms;
+                        }
+
+                        @keyframes gradientShift {
+                            0% {
+                                background-position: 0% 50%;
+                            }
+
+                            50% {
+                                background-position: 100% 50%;
+                            }
+
+                            100% {
+                                background-position: 0% 50%;
+                            }
+                        }
+
+                        /* Heart bounce */
+                        #heart:hover {
+                            transform: scale(1.25);
+                        }
+
+                        #heart:active {
+                            transform: scale(0.85);
+                            transition-duration: 150ms;
+                        }
+                    </style>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- UTILITIES VIEW -->
+    <div id="utilities-view" class="view hidden">
+        <header class="header top-section">
+            <h2>Utilities & Info</h2>
+            <div style="display:flex; gap:8px;">
+                <button type="button" id="quickTourBtn" class="btn btn-secondary btn-small">Quick
+                    Tour</button>
+                <button type="button" id="backBtn" class="btn btn-secondary btn-small">Back</button>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <form id="settingsForm" class="settings-form">
+                <div class="section">
+                    <h3>Extension Info</h3>
+                    <div class="form-group">
+                        <label>Version:</label>
+                        <span class="info-value" id="extensionVersion">2.1.0</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Backend Status:</label>
+                        <span class="info-value status-disconnected" id="backendStatus">Not Connected</span>
+                    </div>
+                    <div class="form-group">
+                        <label>License Status:</label>
+                        <span class="info-value status-connected" id="licenseStatusInfo">Active</span>
+                    </div>
+                    <div class="form-group">
+                        <label>User Tier:</label>
+                        <span id="userTierStatus" class="info-value"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Run:</label>
+                        <span class="info-value" id="lastRunTime">Never</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Processed:</label>
+                        <span class="info-value" id="totalProcessed">0 videos</span>
+                    </div>
+                </div>
+
+                <!-- Utilities: Pro CTA Card -->
+                <div id="upgradeCard" class="util-card pro-cta">
+                    <div class="pro-cta-row">
+                        <div>
+                            <div class="pro-cta-title">Unlock AE Caption Pro</div>
+                            <div class="pro-cta-subtitle">
+                                Get Batch Mode, Translate to English, and Lifetime Unlimited Generate.
+                            </div>
+                        </div>
+                        <div class="pro-cta-actions">
+                            <button type="button" id="enterLicenseBtn" class="btn btn-secondary">Enter
+                                License</button>
+                            <a id="getProBtn" class="btn btn-primary" href="#"
+                               onclick="cep.util.openURLInDefaultBrowser('https://mukeshfx.gumroad.com/l/Autocaptionspro')"
+                               style="cursor: pointer;">Get Pro</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Support Section -->
+                <div class="section">
+                    <h3>Support</h3>
+                    <p class="utility-description">Have questions or need help? Join our community.</p>
+                    <div class="utility-buttons">
+                        <a href="#" class="btn btn-primary" onclick="cep.util.openURLInDefaultBrowser('https://discord.gg/yzmE4hYKD6')" style="cursor: pointer;">Join Discord</a>
+                    </div>
+                </div>
+                <div class="section">
+                    <h3>Reset & Cleanup</h3>
+                    <p class="utility-description">Clear saved settings or reset the entire extension. This will
+                        require re-activation.</p>
+                    <div class="utility-buttons">
+                        <button type="button" id="reselectBtn" class="btn btn-secondary">Change Backend</button>
+                        <button type="button" id="resetSettingsBtn" class="btn btn-secondary">Reset
+                            Settings</button>
+                        <button type="button" id="resetAllBtn" class="btn btn-danger">Reset Extension</button>
+                    </div>
+                </div>
+
+
+
+
+                <div class="branding-footer"
+                     style="margin-top:20px; text-align:center; font-size:12px; color:#888;">
+                    Made with ❤️ by <b style="color:#0d8eff;">Mukeshfx</b><br>
+                    <a href="#" onclick="cep.util.openURLInDefaultBrowser('https://www.youtube.com/channel/UCy7KFDmtn2ziZLxH3L_ImYQ')"
+                       style="color:#0d8eff; text-decoration:none; cursor: pointer;">YouTube</a> ·
+                    <a href="#" onclick="cep.util.openURLInDefaultBrowser('https://www.instagram.com/mukesh.fx_/')"
+                       style="color:#0d8eff; text-decoration:none; cursor: pointer;">Instagram</a> ·
+                    <a href="#" onclick="cep.util.openURLInDefaultBrowser('https://x.com/mukesh_fx')"
+                       style="color:#0d8eff; text-decoration:none; cursor: pointer;">Twitter</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+    </div>
+</main>
+
+<!-- SCRIPTS -->
+<!-- Silence all console output in production UI -->
+<script>
+    (function(){
+        try {
+            var c = window.console = window.console || {};
+            var noop = function(){};
+            var methods = ['log','debug','info','warn','error','trace','group','groupCollapsed','groupEnd','time','timeEnd','timeLog','assert'];
+            for (var i = 0; i < methods.length; i++) {
+                var m = methods[i];
+                if (typeof c[m] !== 'function') c[m] = noop; else c[m] = noop;
+            }
+        } catch(e) {}
+    })();
+</script>
+<script src="CSInterface.js"></script>
+<script src="version.js"></script>
+<script src="main.js"></script>
+</body>
+
+</html>
