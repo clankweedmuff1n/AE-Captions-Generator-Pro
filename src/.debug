@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionList>
+  <Extension Id="com.mukeshfx.aecaption.panel">
+    <HostList>
+      <Host Name="AEFT" Port="9998" />
+    </HostList>
+  </Extension>
+</ExtensionList>

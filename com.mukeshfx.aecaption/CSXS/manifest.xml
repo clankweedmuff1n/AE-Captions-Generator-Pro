@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   ExtensionBundleId="com.mukeshfx.aecaption"
+                   ExtensionBundleVersion="2.1.0"
+                   Version="10.0">
+
+  <Author>MukeshFX</Author>
+
+  <ExtensionList>
+    <Extension Id="com.mukeshfx.aecaption.panel" Version="2.1.0"/>
+  </ExtensionList>
+
+  <ExecutionEnvironment>
+    <HostList>
+    <Host Name="AEFT" Version="[18.0,99.9]"/>
+    </HostList>
+    <LocaleList>
+      <Locale Code="All"/>
+    </LocaleList>
+    <RequiredRuntimeList>
+      <RequiredRuntime Name="CSXS" Version="10.0"/>
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+
+  <DispatchInfoList>
+    <Extension Id="com.mukeshfx.aecaption.panel">
+      <DispatchInfo>
+        <Resources>
+          <!-- Main HTML entry point -->
+          <MainPath>./client/index.html</MainPath>
+          <!-- ExtendScript files -->
+          <ScriptPath>./host/main.jsx</ScriptPath>
+
+          <CEFCommandLine>
+            <Parameter>--allow-file-access</Parameter>
+            <Parameter>--allow-file-access-from-files</Parameter>
+            <Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+          </CEFCommandLine>
+        </Resources>
+
+        <Lifecycle>
+          <AutoVisible>true</AutoVisible>
+        </Lifecycle>
+
+        <UI>
+          <Type>Panel</Type>
+          <Menu>AE Captions PRO (cracked by clankweedmuffin)</Menu>
+
+          <Geometry>
+            <Size>
+              <Height>650</Height>
+              <Width>300</Width>
+            </Size>
+            <MinSize>
+              <Height>450</Height>
+              <Width>280</Width>
+            </MinSize>
+            <MaxSize>
+              <Height>1200</Height>
+              <Width>500</Width>
+            </MaxSize>
+          </Geometry>
+
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+
+</ExtensionManifest>
